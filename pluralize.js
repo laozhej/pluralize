@@ -22,6 +22,8 @@
   var uncountables = {};
   var irregularPlurals = {};
   var irregularSingles = {};
+  // Only extend matching to camel-case suffixes that reliably stay invariant.
+  var camelCaseUncountables = /(?:Series|News)$/;
 
   /**
    * Sanitize a pluralization rule to a usable regular expression.
@@ -105,11 +107,8 @@
    * @return {string}
    */
   function sanitizeWord (token, word, rules) {
-    var lastWord = word.match(/[A-Z][a-z]*$/);
-
     // Empty string or doesn't need fixing.
-    if (!token.length || uncountables.hasOwnProperty(token) ||
-        (lastWord && uncountables.hasOwnProperty(lastWord[0].toLowerCase()))) {
+    if (!token.length || uncountables.hasOwnProperty(token)) {
       return word;
     }
 
@@ -148,6 +147,8 @@
         return restoreCase(word, replaceMap[token]);
       }
 
+      if (camelCaseUncountables.test(word)) return word;
+
       // Run all the rules against the word.
       return sanitizeWord(token, word, rules);
     };
@@ -163,7 +164,7 @@
       if (keepMap.hasOwnProperty(token)) return true;
       if (replaceMap.hasOwnProperty(token)) return false;
 
-      return sanitizeWord(token, word, rules).toLowerCase() === token;
+      return camelCaseUncountables.test(word) || sanitizeWord(token, token, rules) === token;
     };
   }
 

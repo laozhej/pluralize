@@ -825,6 +825,17 @@ describe('pluralize', function () {
       expect(pluralize.singular('singles')).to.equal('singular');
     });
 
+    it('should apply custom rules to camel-case uncountable suffixes', function () {
+      pluralize.addPluralRule(/reportseries$/i, 'reportserieses');
+      pluralize.addSingularRule(/reportseries$/i, 'reportseriesitem');
+
+      expect(pluralize.plural('reportSeries')).to.equal('reportserieses');
+      expect(pluralize.singular('reportSeries')).to.equal('reportseriesitem');
+      expect(pluralize.isPlural('reportSeries')).to.equal(false);
+      expect(pluralize.isSingular('reportSeries')).to.equal(false);
+      expect(pluralize.singular('timeSeries')).to.equal('timeSeries');
+    });
+
     it('should allow new plural matching rules to be strings', function () {
       expect(pluralize.plural('person')).to.equal('people');
 

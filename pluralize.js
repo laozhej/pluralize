@@ -106,7 +106,7 @@
    * @param  {Array}    rules
    * @return {string}
    */
-  function sanitizeWord (token, word, rules) {
+  function sanitizeWord (token, word, rules, originalWord) {
     // Empty string or doesn't need fixing.
     if (!token.length || uncountables.hasOwnProperty(token)) {
       return word;
@@ -118,7 +118,12 @@
     while (len--) {
       var rule = rules[len];
 
-      if (rule[0].test(word)) return replace(word, rule);
+      if (rule[0] === camelCaseUncountables) {
+        // Classifiers still need the original capitalization for this rule.
+        if (rule[0].test(originalWord)) return word;
+      } else if (rule[0].test(word)) {
+        return replace(word, rule);
+      }
     }
 
     return word;
@@ -147,10 +152,8 @@
         return restoreCase(word, replaceMap[token]);
       }
 
-      if (camelCaseUncountables.test(word)) return word;
-
       // Run all the rules against the word.
-      return sanitizeWord(token, word, rules);
+      return sanitizeWord(token, word, rules, word);
     };
   }
 
@@ -164,7 +167,7 @@
       if (keepMap.hasOwnProperty(token)) return true;
       if (replaceMap.hasOwnProperty(token)) return false;
 
-      return camelCaseUncountables.test(word) || sanitizeWord(token, token, rules) === token;
+      return sanitizeWord(token, token, rules, word) === token;
     };
   }
 
@@ -507,6 +510,8 @@
     /pox$/i, // "chickpox", "smallpox"
     /sheep$/i
   ].forEach(pluralize.addUncountableRule);
+
+  pluralize.addUncountableRule(camelCaseUncountables);
 
   return pluralize;
 });
